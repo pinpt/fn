@@ -2,7 +2,11 @@ import { randomBytes, createCipheriv, createDecipheriv } from 'crypto';
 import { Request, Response, KeyValAnyMap } from '../';
 import { SetCookie, GetCookie, DeleteCookie } from './cookie';
 
-const encKey = 'nokqsklclrwixdfacwetgctzsuelurji';
+const encKey = process.env.FN_ENC_KEY || '';
+if (!encKey) {
+    console.error('missing required FN_ENC_KEY setting in environment');
+    process.exit(1);
+}
 
 const encrypt = (text: string): string => {
     const iv = randomBytes(16);
