@@ -1,0 +1,6 @@
+# package directories
+node_modules
+dist
+.rpt2_cache
+docs
+.DS_Store
