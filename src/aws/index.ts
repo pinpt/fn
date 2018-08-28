@@ -14,6 +14,7 @@ if (process.env.AWS_PROFILE) {
  */
 export default function Lambda(handler: LambdaHandler): Handler {
     return (event: APIGatewayEvent, context: Context, cb: Callback) => {
+        context.callbackWaitsForEmptyEventLoop = false;
         const req = new LambdaRequest(event, context);
         const resp = new LambdaResponse(req, event, cb);
         try {

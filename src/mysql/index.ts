@@ -12,6 +12,7 @@ export default class MySQLDB implements SQLDatabase {
     private readonly cache: KeyValAnyMap;
     private readonly req: Request;
     private readonly version: string;
+    static idleTimeoutInSec:number = 30;
     constructor(req: Request) {
         if (!req.customerID) {
             throw new Error('no customer ID which is required for mysql');
@@ -29,7 +30,9 @@ export default class MySQLDB implements SQLDatabase {
         const key = this.version || 'any';
         // see if we have already have a cached pool already
         let cluster: PoolCluster = this.cache[key] as PoolCluster;
+        let setIdleTimeout = false;
         if (!cluster) {
+            setIdleTimeout = true;
             // we don't have a cluster, so we need to create a new one
             cluster = createPoolCluster();
             this.cache[key] = cluster;
@@ -41,6 +44,7 @@ export default class MySQLDB implements SQLDatabase {
                 const port = parseInt(String(process.env.PP_DB_PORT), 10) || 3306;
                 cluster.add('master', {
                     connectionLimit: 1,
+                    acquireTimeout: 1000,
                     host,
                     user,
                     password,
@@ -50,7 +54,8 @@ export default class MySQLDB implements SQLDatabase {
                     charset: 'utf8mb4'
                 });
                 cluster.add('replica0', {
-                    connectionLimit: 3,
+                    connectionLimit: 1,
+                    acquireTimeout: 1000,
                     host,
                     user,
                     password,
@@ -74,6 +79,7 @@ export default class MySQLDB implements SQLDatabase {
                         const ssl = host.indexOf('amazonaws') > 0 ? 'Amazon RDS' : undefined;
                         cluster.add('master', {
                             connectionLimit: 1,
+                            acquireTimeout: 1000,
                             host,
                             user,
                             password,
@@ -89,7 +95,8 @@ export default class MySQLDB implements SQLDatabase {
                             const ssl = host.indexOf('amazonaws') > 0 ? 'Amazon RDS' : undefined;
                             // store each replica by index so we can round robin select more than one
                             cluster.add(`replica${index}`, {
-                                connectionLimit: 3,
+                                connectionLimit: 1,
+                                acquireTimeout: 1000,
                                 host,
                                 user,
                                 password,
@@ -112,7 +119,18 @@ export default class MySQLDB implements SQLDatabase {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(conn);
+                    if (setIdleTimeout) {
+                        // if we need to setup an idle timeout, set it up on start
+                        // this will cause mysql server to drop our connection after
+                        // idleTimeoutInSec ... so in the case the lambda is frozen
+                        // the server can timeout the connection. this is important
+                        // in highly parallel lambda environments where the number
+                        // of connections can easily far exceed the number of connections
+                        // allowed to mysql server
+                        conn.query(`set wait_timeout=${MySQLDB.idleTimeoutInSec}`,() => resolve(conn));
+                    } else {
+                        resolve(conn);
+                    }
                 }
             });
         });

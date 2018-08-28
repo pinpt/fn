@@ -28,6 +28,8 @@ apis/apidoc/index.ts
 .apidoc
 .serverless
 .webpack
+.cache-loader
+iopipe_handlers
 `;
 
 function init(name, {dir, templates, force, description, certs}, {info, error, copydir, tmpldir}, pkg) {
