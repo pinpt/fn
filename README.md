@@ -14,7 +14,7 @@
 
 ## Setup
 
-More coming soon...
+More coming soon....
 
 ## License
 
