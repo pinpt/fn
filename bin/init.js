@@ -18,8 +18,17 @@ const libs = [
     'typescript',
     'yamljs',
     'html-minifier',
-    'path-to-regexp'
+    'path-to-regexp',
+    'api2html'
 ];
+
+const gitignore = `
+node_modules
+apis/apidoc/index.ts
+.apidoc
+.serverless
+.webpack
+`;
 
 function init(name, {dir, templates, force, description, certs}, {info, error, copydir, tmpldir}, pkg) {
     if (fs.existsSync(dir)) {
@@ -35,6 +44,8 @@ function init(name, {dir, templates, force, description, certs}, {info, error, c
         info('+ copying tls certs ...');
         copydir(certs, path.join(dir, 'dev-certs'));
     }
+
+    fs.writeFileSync(path.join(dir, '.gitignore'), gitignore);
 
     info('+ copying templates ...');
     const config = {

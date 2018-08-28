@@ -244,6 +244,7 @@ module.exports = (sls) => {
             '-o', htmlfn,
             '-l', 'shell,http',
             '-m',
+            '-c', path.join(__dirname, '../etc', 'logo.png'),
             yamlfn
         ], {
             cwd: tempdir,

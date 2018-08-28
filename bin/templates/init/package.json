@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "<%=description%>",
   "scripts": {
+    "deploy": "sls deploy",
     "offline": "sls offline",
     "package": "sls package",
-    "deploy": "sls deploy",
-    "start": "npm run offline"
+    "start": "sls offline"
   },
   "dependencies": {
     "@pinpt/fn": "^<%=version%>"

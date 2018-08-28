@@ -1,0 +1,4 @@
+# this will create an /apidoc resource. you might want to secure this by default
+apidoc:
+  apidoc:
+    hidden: true

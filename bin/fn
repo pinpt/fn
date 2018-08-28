@@ -24,6 +24,8 @@ function tmpl(input, obj, output) {
     fs.writeFileSync(output, buf);
 }
 
+const skipTemplate = (fn) => /\.(png|jpg|jpeg|gif|svg)$/.test(fn);
+
 function tmpldir(templates, config, dir, re = /.*/) {
     fs.existsSync(dir) || fs.mkdirSync(dir);
     for (let d of fs.readdirSync(templates)) {
@@ -32,7 +34,13 @@ function tmpldir(templates, config, dir, re = /.*/) {
             fs.mkdirSync(path.join(dir, d));
             tmpldir(tdir, config, path.join(dir, d), re);
         } else {
-            re.test(d) && tmpl(tdir, config, path.join(dir, d));
+            if (re.test(d)) {
+                if (skipTemplate(d)) {
+                    fs.copyFileSync(tdir, path.join(dir, d));
+                } else {
+                    tmpl(tdir, config, path.join(dir, d));
+                }
+            }
         }
     }
 }
@@ -104,3 +112,7 @@ program
     });
 
 program.parse(process.argv);
+
+if (!process.argv.slice(2).length) {
+    program.outputHelp();
+}
