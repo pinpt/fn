@@ -58,6 +58,7 @@ function init(name, {dir, templates, force, description, certs}, {info, error, c
         certs
     };
     tmpldir(templates, config, dir);
+    copydir(path.join(__dirname, '..', '.github'), path.join(dir, '.github'));
 
     const cmd = ['npm', 'install', '--loglevel=error'].join(' ');
     info('+ installing npm modules ...');
