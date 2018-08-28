@@ -1,0 +1,5 @@
+ping:
+  cors: true
+  apidoc:
+    name: ping
+    description: ping endpoint

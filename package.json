@@ -1,12 +1,16 @@
 {
   "name": "@pinpt/fn",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "A tiny micro framework for the Serverless framework for building fast λ functions",
   "main": "dist/fn.umd.js",
   "module": "dist/fn.es5.js",
-  "typings": "dist/types/fn.d.ts",
+  "typings": "dist/types/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "bin",
+    "LICENSE",
+    "README"
   ],
   "repository": {
     "type": "git",
@@ -24,7 +28,10 @@
   "homepage": "https://github.com/pinpt/fn#readme",
   "dependencies": {
     "binary-case": "^1.1.4",
+    "chalk": "^2.4.1",
+    "commander": "^2.17.1",
     "cookie": "^0.3.1",
+    "ejs": "^2.6.1",
     "jsonwebtoken": "^8.3.0",
     "mysql": "^2.16.0",
     "source-map-support": "^0.5.0",
@@ -93,6 +100,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "prepare": "npm run build"
+  },
+  "bin": {
+    "fn": "./bin/fn"
   }
 }

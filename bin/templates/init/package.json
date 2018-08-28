@@ -1,0 +1,14 @@
+{
+  "name": "<%=name%>",
+  "version": "1.0.0",
+  "description": "<%=description%>",
+  "scripts": {
+    "offline": "sls offline",
+    "package": "sls package",
+    "deploy": "sls deploy",
+    "start": "npm run offline"
+  },
+  "dependencies": {
+    "@pinpt/fn": "^<%=version%>"
+  }
+}
