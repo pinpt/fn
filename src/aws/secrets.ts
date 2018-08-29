@@ -1,7 +1,7 @@
-import { SecretsManager } from 'aws-sdk';
+const AWS = require('aws-sdk'); // https://github.com/aws/aws-sdk-js/issues/1769
 import { Request, Secrets, KeyValAnyMap } from '../index';
 
-const client = new SecretsManager();
+const client = new AWS.SecretsManager();
 
 // global cache where the key is the customer id and the value is the customer specific cache
 const cache : KeyValAnyMap = {};
@@ -35,7 +35,7 @@ export default class SecretManager implements Secrets {
             }
         }
         return new Promise((resolve, reject) => {
-            client.getSecretValue({SecretId:`customer/${this.id}`}, (err, data) => {
+            client.getSecretValue({SecretId:`customer/${this.id}`}, (err:Error, data:AWS.SecretsManager.Types.GetSecretValueResponse) => {
                 if (err) {
                     reject(err);
                 } else {

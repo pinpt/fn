@@ -1,4 +1,0 @@
-<%=name%>:
-  apidoc:
-    name: <%=name%>
-    description: <%=description%>

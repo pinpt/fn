@@ -1,5 +1,8 @@
 import { Handler } from 'aws-lambda';
 import AWSInvoker from './aws';
+export { SSMConfig, SecretManager } from './aws';
+export { default as MySQLDB } from './mysql';
+export * from './util';
 
 /**
  * generic hash of key / values as strings

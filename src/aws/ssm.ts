@@ -1,7 +1,8 @@
-import { SSM, AWSError } from 'aws-sdk';
+const AWS = require('aws-sdk'); // https://github.com/aws/aws-sdk-js/issues/1769
+import { AWSError } from 'aws-sdk';
 import { Config } from '../index';
 
-const ssm = new SSM();
+const ssm = new AWS.SSM();
 
 const isNotFound = (err : AWSError):boolean => err.code === 'ParameterNotFound' || /^Parameter .* not found\.$/.test(err.message);
 const isRateLimitExceeded = (err : AWSError):boolean => err.message === 'Rate exceeded';
@@ -23,7 +24,7 @@ const flattenKV = (kv: {[key:string]:any}, k:string, v:any):void => {
 
 const get = (path: string, exact: boolean, callback: (err?: AWSError | null, data?: any) => void, count:number):void => {
 	if (exact) {
-		ssm.getParameter({ Name: path, WithDecryption: true }, (err?: AWSError | null, data? : SSM.GetParameterResult): void => {
+		ssm.getParameter({ Name: path, WithDecryption: true }, (err?: AWSError | null, data? : AWS.SSM.GetParameterResult): void => {
 			if (err) {
 				if (isNotFound(err)) {
 					callback(null, null);
@@ -45,7 +46,7 @@ const get = (path: string, exact: boolean, callback: (err?: AWSError | null, dat
 			}
 		});
 	} else {
-		ssm.getParametersByPath({ Path: path, Recursive: true, WithDecryption: true }, (err? : AWSError | null, data? : SSM.GetParametersByPathResult): void => {
+		ssm.getParametersByPath({ Path: path, Recursive: true, WithDecryption: true }, (err? : AWSError | null, data? : AWS.SSM.GetParametersByPathResult): void => {
             if (err) {
 				if (isNotFound(err)) {
 					callback(null, {});
@@ -64,7 +65,7 @@ const get = (path: string, exact: boolean, callback: (err?: AWSError | null, dat
 			const kv : {[key:string]:any} = {};
 
 			if (data && data.Parameters) {
-				data.Parameters.forEach((e:SSM.Parameter):void => {
+				data.Parameters.forEach((e:AWS.SSM.Parameter):void => {
 					if (e.Name) {
 						let k = e.Name.replace(path, '');
 						if (k[0] === '/') {
@@ -132,7 +133,7 @@ const del = (path: string, callback: (err?: AWSError | null) => void, count:numb
 /**
  * SSMConfig is an implementation of Config which uses AWS SSM for config storage
  */
-export class SSMConfig implements Config {
+export default class SSMConfig implements Config {
 	private cache: { [key: string]: any } = {};
 	get(path: string, exact = false): Promise<any> {
 		const found = this.cache[path];
