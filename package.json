@@ -1,13 +1,12 @@
 {
   "name": "@pinpt/fn",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A tiny micro framework for the Serverless framework for building fast λ functions",
   "main": "dist/index.js",
-  "typings": "dist/types/index.d.ts",
+  "typings": "dist/@types/index.d.ts",
   "types": "dist/@types/index.d.ts",
   "files": [
     "dist",
-    "bin",
     "LICENSE",
     "README"
   ],
@@ -80,7 +79,7 @@
     ]
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=8.10.0"
   },
   "scripts": {
     "lint": "tslint  --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
