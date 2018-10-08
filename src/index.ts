@@ -1,17 +1,19 @@
-import { Handler } from 'aws-lambda';
-import AWSInvoker from './aws';
+import { APIGatewayEvent, Callback, CustomAuthorizerEvent, Context, Handler } from 'aws-lambda';
+import { Lambda, LambdaRoutes } from './aws';
 export { SSMConfig, SecretManager } from './aws';
 export { default as MySQLDB } from './mysql';
 export * from './util';
 
+export type RequestEvent  = APIGatewayEvent | CustomAuthorizerEvent;
+
 /**
  * generic hash of key / values as strings
  */
-export type KeyValMap = {[key:string]:string};
+export type KeyValMap = { [key: string]: string };
 /**
  * generic hash of key /value where value is an any
  */
-export type KeyValAnyMap = {[key:string]:any};
+export type KeyValAnyMap = { [key: string]: any };
 /**
  * either a string or undefined
  */
@@ -29,6 +31,17 @@ export type ArrayAny = any[];
  * Request is the interface for an incoming HTTP request
  */
 export interface Request {
+
+    /**
+     * incoming AWS event
+     */
+    readonly event: RequestEvent;
+    
+    /**
+     * incoming AWS context
+     */
+    readonly context: Context;
+
     /**
      * incoming HTTP headers which are case insensitive
      */
@@ -84,7 +97,7 @@ export interface Request {
 }
 
 // OnHandler is the callback handler for on events
-export type OnHandler = (event:string, resp:Response) => void;
+export type OnHandler = (event: string, resp: Response) => void;
 
 
 /**
@@ -101,7 +114,7 @@ export interface Response {
      * @param maxAge max age in seconds for cache-control setting
      * @param revalidate if true, will send must-revalidate with cache-control header
      */
-    cache(maxAge:number, revalidate?:boolean):void;
+    cache(maxAge: number, revalidate?: boolean): void;
 
     /**
      * send raw string data
@@ -109,66 +122,66 @@ export interface Response {
      * @param headers headers to send
      * @param statusCode status code to send, defaults to 200
      */
-    send(body: string, headers?: KeyValMap, statusCode?: number):void;
+    send(body: string, headers?: KeyValMap, statusCode?: number): void;
 
     /**
      * send raw should only be called when you need to control the entire details of the callback response
      * @param err error response
      * @param body body of the response callback
      */
-    sendRaw(err:any|null, body?:any):void;
+    sendRaw(err: any | null, body?: any): void;
 
     /**
      * send JSON response data
      * @param obj data value
      */
-    json(data: Object | Promise<Object>):Promise<void>;
+    json(data: Object | Promise<Object>): Promise<void>;
 
     /**
      * send a text response of text/plain
      * @param buf buffer value
      */
-    text(buf:string|Buffer):void;
+    text(buf: string | Buffer): void;
 
     /**
      * send an HTML response of text/html
      * @param buf buffer value
      */
-    html(buf:string|Buffer):void;
+    html(buf: string | Buffer): void;
 
     /**
      * send JS response of application/javascript
      * @param buf buffer value
      */
-    javascript(buf:string|Buffer):void;
+    javascript(buf: string | Buffer): void;
 
     /**
      * send Error JSON response
      * @param err Error object
      * @param statusCode optional status code, defaults to 500 Internal Server Error
      */
-    error(err: Error, statusCode?: number):void
+    error(err: Error, statusCode?: number): void
 
     /**
      * set a response HTTP header
      * @param key header name
      * @param value header value
      */
-    set(key:string, value:string):void
+    set(key: string, value: string): void
 
     /**
      * redirect the request
      * @param url url to redirect to
      * @param status status code
      */
-    redirect(url:string, status?:number):void;
+    redirect(url: string, status?: number): void;
 
     /**
      * listen for response emitted events
      * @param event event name to hook into
      * @param cb callback
      */
-    on(event:string, cb:OnHandler):void;
+    on(event: string, cb: OnHandler): void;
 }
 
 /**
@@ -192,7 +205,7 @@ export interface Config {
      * delete a value at the path specified
      * @param path path such as /a/b/c
      */
-	delete(path: string): Promise<void>;
+    delete(path: string): Promise<void>;
 }
 
 /**
@@ -203,7 +216,7 @@ export interface Secrets {
      * return one or more secrets
      * @param key optional key, if not provided, will return all values
      */
-    get(key?:string):Promise<any>;
+    get(key?: string): Promise<any>;
 }
 
 /**
@@ -229,6 +242,22 @@ export interface SQLDatabase {
  */
 export type LambdaHandler = (req: Request, resp: Response) => void;
 
+export enum LambdaMethod {
+    Get = 'get',
+    Post = 'post',
+    Put = 'put',
+    Head = 'head',
+    Delete = 'delete',
+    Options ='options'
+}
+
+export interface LambdaPath {
+    method: LambdaMethod,
+    path : string,
+    handler : LambdaHandler
+}
+
+
 /**
  * λ is the wrapper function for exposing the function to Serverless Framework
  * @param handler
@@ -236,5 +265,11 @@ export type LambdaHandler = (req: Request, resp: Response) => void;
 export function λ(handler: LambdaHandler): Handler {
     // we add this here instead of injection in webpack nonsense to ensure we have good source maps
     require('source-map-support').install();
-    return AWSInvoker(handler);
+    return Lambda(handler);
+}
+
+export function λs(handlers: LambdaPath[]): Handler {
+    // we add this here instead of injection in webpack nonsense to ensure we have good source maps
+    require('source-map-support').install();
+    return LambdaRoutes(handlers);
 }

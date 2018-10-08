@@ -1,8 +1,6 @@
 import { APIGatewayEvent, Callback, CustomAuthorizerEvent, Context } from 'aws-lambda';
 import { createHmac } from 'crypto';
-import { Request, Response, KeyValMap, OptionalString, NullString, OnHandler } from '../index';
-
-type RequestEvent  = APIGatewayEvent | CustomAuthorizerEvent;
+import { Request, Response, KeyValMap, OptionalString, NullString, OnHandler, RequestEvent } from '../index';
 
 // isCustomAuthorizerEvent returns true if the object is an CustomAuthorizerEvent interface
 const isCustomAuthorizerEvent = (event: RequestEvent): boolean => 'authorizationToken' in event;
@@ -14,8 +12,9 @@ const etag = (body:string, arn:string, qs:string, customerID:string = ''): strin
  * LambdaRequest is an implementation of Request for AWS Lambda
  */
 export class LambdaRequest implements Request {
-    private readonly event: RequestEvent;
-    private readonly context : Context;
+    public readonly event: RequestEvent;
+    public readonly context : Context;
+    private routeArgs: (string | undefined)[] = [];
     constructor(event: RequestEvent, context: Context) {
         this.event = event;
         this.context = context;
@@ -103,6 +102,31 @@ export class LambdaRequest implements Request {
     get query():KeyValMap {
         return this.event.queryStringParameters || {};
     }
+    get path() : string {
+        const proxy = this.params['proxy'];
+
+        if (proxy) {
+            return proxy;
+        } else {
+            return '/';
+        }
+    }
+    get method() : string {
+        const { requestContext } = this.event;
+
+        if (requestContext) {
+            return requestContext.httpMethod;
+        }
+        else {
+            throw new Error('requestContext is not present')
+        }
+    }
+    get args() : (string | undefined)[] {
+        return this.routeArgs;
+    }
+    set args(args : (string | undefined)[]) {
+        this.routeArgs = args;
+    } 
     get body():NullString {
         const e = this.event as APIGatewayEvent;
         if (e.isBase64Encoded) {
