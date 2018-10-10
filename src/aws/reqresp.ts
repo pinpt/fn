@@ -1,6 +1,8 @@
 import { APIGatewayEvent, Callback, CustomAuthorizerEvent, Context } from 'aws-lambda';
 import { createHmac } from 'crypto';
 import { Request, Response, KeyValMap, OptionalString, NullString, OnHandler, RequestEvent } from '../index';
+import { Option } from 'aws-sdk/clients/rds';
+import { print } from 'util';
 
 // isCustomAuthorizerEvent returns true if the object is an CustomAuthorizerEvent interface
 const isCustomAuthorizerEvent = (event: RequestEvent): boolean => 'authorizationToken' in event;
@@ -102,24 +104,12 @@ export class LambdaRequest implements Request {
     get query():KeyValMap {
         return this.event.queryStringParameters || {};
     }
-    get path() : string {
-        const proxy = this.params['proxy'];
-
-        if (proxy) {
-            return proxy;
-        } else {
-            return '/';
-        }
+    get path(): OptionalString {
+        return this.params['proxy'];
     }
-    get method() : string {
-        const { requestContext } = this.event;
-
-        if (requestContext) {
-            return requestContext.httpMethod;
-        }
-        else {
-            throw new Error('requestContext is not present')
-        }
+    get method(): OptionalString {
+        const { httpMethod } = this.event as APIGatewayEvent;
+        return httpMethod; 
     }
     get args() : (string | undefined)[] {
         return this.routeArgs;

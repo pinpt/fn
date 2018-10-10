@@ -94,6 +94,14 @@ export interface Request {
      * stage for the lambda function
      */
     readonly stage?: string;
+    /**
+     * method if request is a proxy
+     */
+    readonly method?: string;
+    /**
+     * path if request is a proxy
+     */
+    readonly path?: string;
 }
 
 // OnHandler is the callback handler for on events
@@ -256,7 +264,6 @@ export interface LambdaPath {
     path : string,
     handler : LambdaHandler
 }
-
 
 /**
  * λ is the wrapper function for exposing the function to Serverless Framework

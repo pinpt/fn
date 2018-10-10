@@ -1,9 +1,12 @@
-import pathToRegexp from 'path-to-regexp';
-import methods from 'methods';
 import { Request, Response, LambdaHandler, LambdaMethod } from '..'
 import { LambdaRequest, LambdaResponse } from '../aws/reqresp'
+import debug from 'debug';
 
-export type Route = (req: LambdaRequest, resp: LambdaResponse, next: Func) => any;
+// Must use require because jest doesn't work with default imports using es6 style
+const methods = require('methods');
+const pathToRegexp = require('path-to-regexp');
+
+export type Route = (req: Request, resp: Response, next: Func) => any;
 export type RouteMaker = (path: string, fn: LambdaHandler, opts?: any[] | undefined) => Route;
 
 export interface RouterType {
@@ -32,15 +35,23 @@ function create(method : string) {
     const re = pathToRegexp(path, opts);
 
     const createRoute = function(routeFunc : LambdaHandler){
-      return function (req: LambdaRequest, resp: LambdaResponse, next: Func){
+      return function (req: Request, resp: Response, next: Func){
         // method
         if (!matches(req, method)) return next();
+        // if path is undefined
+        if (!req.path) return next();
 
-        // path
         const m = re.exec(req.path);
+        debug('router')('testing path', req.path, m);
         if (m) {
+          debug('router')('matched path');
           const args = m.slice(1).map(decode);
-          req.args = args;
+
+          if (req instanceof LambdaRequest) {
+            debug('router')('found args', args);
+            req.args = args;
+          }
+
           return routeFunc(req, resp);
         }
 
@@ -65,25 +76,25 @@ function decode(val : string) {
  * Check request method.
  */
 
-function matches(req: LambdaRequest, method : string) {
+function matches(req: Request, method : string) {
+  debug('router')('testing method', method, req.method)
   if (!method) return true;
   if (req.method === method) return true;
   if (method === 'GET' && req.method === 'HEAD') return true;
+  debug('router')('failed to match method')
   return false;
 }
 
 export function makeRoute(method: string, path: string, fn: LambdaHandler, opts?: any[] | undefined) : Route { 
-  return router[method](path, fn, opts);
+  return router[method.toLowerCase()](path, fn, opts);
 };
 
-export function makeFinalRoute(routes: Route[]) : LambdaHandler {
-  let finalRoute : LambdaHandler = (a: Request, b: Response) => { 
+export function executeRoutes(
+  { req, resp, routes }: {req: Request, resp: Response, routes: Route[] }, 
+) : any {
+  if(routes.length === 0) {
     throw new Error('route not found');
-  };
-
-  for (const route of routes.reverse()) {
-    finalRoute = (a, b) => route(a, b, () => finalRoute(a, b))
   }
-  
-  return finalRoute;
-};
+  const [route, ...rest] = routes;
+  return route(req, resp, () => executeRoutes({req, resp, routes: rest}))
+}
