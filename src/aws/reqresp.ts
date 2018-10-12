@@ -1,8 +1,6 @@
 import { APIGatewayEvent, Callback, CustomAuthorizerEvent, Context } from 'aws-lambda';
 import { createHmac } from 'crypto';
-import { Request, Response, KeyValMap, OptionalString, NullString, OnHandler, RequestEvent } from '../index';
-import { Option } from 'aws-sdk/clients/rds';
-import { print } from 'util';
+import { Request, Response, KeyValMap, KeyValAnyMap, OptionalString, NullString, OnHandler, RequestEvent } from '../index';
 
 // isCustomAuthorizerEvent returns true if the object is an CustomAuthorizerEvent interface
 const isCustomAuthorizerEvent = (event: RequestEvent): boolean => 'authorizationToken' in event;
@@ -16,7 +14,6 @@ const etag = (body:string, arn:string, qs:string, customerID:string = ''): strin
 export class LambdaRequest implements Request {
     public readonly event: RequestEvent;
     public readonly context : Context;
-    private routeArgs: (string | undefined)[] = [];
     constructor(event: RequestEvent, context: Context) {
         this.event = event;
         this.context = context;
@@ -98,8 +95,11 @@ export class LambdaRequest implements Request {
         }
         return undefined;
     }
-    get params():KeyValMap {
+    get params():KeyValAnyMap {
         return this.event.pathParameters || {};
+    }
+    set params(m : KeyValAnyMap) {
+        this.event.pathParameters = m;
     }
     get query():KeyValMap {
         return this.event.queryStringParameters || {};
@@ -111,12 +111,6 @@ export class LambdaRequest implements Request {
         const { httpMethod } = this.event as APIGatewayEvent;
         return httpMethod; 
     }
-    get args() : (string | undefined)[] {
-        return this.routeArgs;
-    }
-    set args(args : (string | undefined)[]) {
-        this.routeArgs = args;
-    } 
     get body():NullString {
         const e = this.event as APIGatewayEvent;
         if (e.isBase64Encoded) {

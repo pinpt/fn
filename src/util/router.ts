@@ -1,10 +1,7 @@
-import { Request, Response, LambdaHandler, LambdaMethod } from '..'
-import { LambdaRequest, LambdaResponse } from '../aws/reqresp'
+import { Request, Response, LambdaHandler} from '..'
 import debug from 'debug';
-
-// Must use require because jest doesn't work with default imports using es6 style
-const methods = require('methods');
-const pathToRegexp = require('path-to-regexp');
+import * as pathMatch from 'path-match';
+import * as methods from 'methods';
 
 export type Route = (req: Request, resp: Response, next: Func) => any;
 export type RouteMaker = (path: string, fn: LambdaHandler, opts?: any[] | undefined) => Route;
@@ -29,10 +26,10 @@ function create(method : string) {
   if (method) method = method.toUpperCase();
 
   return function(
-    path : string, 
+    pathname : string, 
     fn: LambdaHandler, 
     opts?: (any[]) | undefined){
-    const re = pathToRegexp(path, opts);
+    const matchesPath = pathMatch({})(pathname);
 
     const createRoute = function(routeFunc : LambdaHandler){
       return function (req: Request, resp: Response, next: Func){
@@ -41,17 +38,11 @@ function create(method : string) {
         // if path is undefined
         if (!req.path) return next();
 
-        const m = re.exec(req.path);
-        debug('router')('testing path', req.path, m);
-        if (m) {
-          debug('router')('matched path');
-          const args = m.slice(1).map(decode);
-
-          if (req instanceof LambdaRequest) {
-            debug('router')('found args', args);
-            req.args = args;
-          }
-
+        const params = matchesPath(req.path);
+        debug('router')('testing path', req.path, params);
+        if (params !== false) {
+          debug('router')('matched path', pathname, params);
+          req.params = { ...req.params, ...params}
           return routeFunc(req, resp);
         }
 
@@ -71,6 +62,7 @@ function create(method : string) {
 function decode(val : string) {
   if (val) return decodeURIComponent(val);
 }
+
 
 /**
  * Check request method.

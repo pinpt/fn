@@ -57,7 +57,7 @@ export interface Request {
     /**
      * path parameters if the route was parameterized
      */
-    readonly params: KeyValMap;
+    params: KeyValAnyMap;
     /**
      * auth token if provided
      */
