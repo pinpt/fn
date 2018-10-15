@@ -1,6 +1,6 @@
 {
   "name": "@pinpt/fn",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A tiny micro framework for the Serverless framework for building fast λ functions",
   "main": "dist/index.js",
   "typings": "dist/@types/index.d.ts",
