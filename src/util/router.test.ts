@@ -47,3 +47,21 @@ test('router detects arguments', async () => {
   expect(rightFunction).toBeCalled();
   expect(innerFunctionOfWrongPath).not.toBeCalled();
 });
+
+test('router undefined path parameters defaults to /', async () => {
+  const routes = [
+    makeRoute(LambdaMethod.Get, '/', (req, resp) => {
+      return "hi";
+    }),
+    makeRoute(LambdaMethod.Post, '/', (req, resp) => {
+      return "hi2";
+    })
+  ];
+
+  const req = getLambdaRequestMock(
+    { httpMethod: 'POST'}
+    ,{},
+    { httpMethod: 'POST'})
+  const resp = getLambdaResponseMock(req, req.event as APIGatewayEvent, () => null);
+  executeRoutes({req, resp, routes})
+});

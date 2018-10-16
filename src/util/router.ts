@@ -35,11 +35,10 @@ function create(method : string) {
       return function (req: Request, resp: Response, next: Func){
         // method
         if (!matches(req, method)) return next();
-        // if path is undefined
-        if (!req.path) return next();
 
-        const params = matchesPath(req.path);
-        debug('router')('testing path', req.path, params);
+        const requestPath = req.path || '/';
+        const params = matchesPath(requestPath);
+        debug('router')('testing path', requestPath, params);
         if (params !== false) {
           debug('router')('matched path', pathname, params);
           req.params = { ...req.params, ...params}
