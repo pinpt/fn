@@ -20,6 +20,8 @@ export function Lambda(handler: LambdaHandler): Handler {
         context.callbackWaitsForEmptyEventLoop = false;
         const req = new LambdaRequest(event, context);
         const resp = new LambdaResponse(req, event, cb);
+        resp.cors();
+
         try {
             handler(req, resp);
         } catch (ex) {
@@ -34,6 +36,7 @@ export function LambdaRoutes(handlers: LambdaPath[]): Handler {
         
         const req = new LambdaRequest(event, context);
         const resp = new LambdaResponse(req, event, cb);
+        resp.cors();
 
         const routes = handlers.map(handle => {
             return makeRoute(handle.method, handle.path, handle.handler)
