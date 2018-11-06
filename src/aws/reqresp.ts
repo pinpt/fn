@@ -143,6 +143,10 @@ export class LambdaResponse implements Response {
         }
         this.headers['cache-control'] = cc;
     }
+    cors():void {
+        this.headers['Access-Control-Allow-Origin'] = '*';
+        this.headers['Access-Control-Allow-Credentials'] = 'true';
+    }
     sendRaw(err:any|null, body?: any):void {
         this.hook('send');
         this.cb(err, body);

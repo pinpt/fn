@@ -125,6 +125,11 @@ export interface Response {
     cache(maxAge: number, revalidate?: boolean): void;
 
     /**
+     * Add cors headers to response
+     */
+    cors() : void;
+
+    /**
      * send raw string data
      * @param body body of the response
      * @param headers headers to send
