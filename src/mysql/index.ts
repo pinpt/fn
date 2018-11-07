@@ -137,20 +137,18 @@ export default class MySQLDB implements SQLDatabase {
     }
     // query is readonly against replica
     query(sql: string, values?: any): Promise<ArrayAny> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const conn = await this.getConnection(false);
-                conn.query(sql, values, (err: MysqlError | null, results: any): void => {
-                    conn.release();
+        return new Promise((resolve, reject) => {
+            const conn = this.getConnection(false);
+            conn.then((c) => {
+                c.query(sql, values, (err: MysqlError | null, results: any): void => {
+                    c.release();
                     if (err) {
                         reject(err);
                     } else {
                         resolve(results);
                     }
                 });
-            } catch (ex) {
-                reject(ex);
-            }
+            }, (err) => reject(err));
         });
     }
     // execute is writeable against master
